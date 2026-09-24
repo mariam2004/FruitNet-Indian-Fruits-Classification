@@ -222,10 +222,8 @@ FruitNet-Indian-Fruits-Classification/
 ├── requirements.txt
 ├── .gitignore
 │
-├── FruitNet_Multitask_CNN.ipynb
-│
-└── models/
-    └── fruit_quality_model.h5
+└── FruitNet_Multitask_CNN.ipynb
+
 ```
 
 ---
