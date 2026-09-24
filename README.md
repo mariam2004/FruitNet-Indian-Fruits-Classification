@@ -1,24 +1,25 @@
 # FruitNet - Indian Fruits Classification
 
-A deep learning project for classifying Indian fruits based on two tasks:
+A deep learning project for **fruit type and fruit quality classification** using a Multi-Task Convolutional Neural Network (CNN).
 
-- Fruit Type Classification
-- Fruit Quality Classification
+The model is trained on the **FruitNet: Indian Fruits Dataset with Quality** and performs two classification tasks simultaneously from a single fruit image:
 
-The project uses a Multi-Task Convolutional Neural Network (CNN) trained on the **FruitNet: Indian Fruits Dataset with Quality**.
+- **Fruit Type Classification**
+- **Fruit Quality Classification**
 
 ---
 
 ## Project Overview
 
-The goal of this project is to build a single deep learning model that performs two classification tasks simultaneously from the same fruit image.
+The goal of this project is to develop a single deep learning model capable of predicting both the **fruit class** and its **quality category** from the same input image.
 
-Given an input image, the model predicts:
+The project uses a **Multi-Task Learning** architecture with:
 
-1. The type of fruit.
-2. The quality of the fruit.
+- A shared CNN feature extraction backbone.
+- A dedicated output layer for fruit quality.
+- A dedicated output layer for fruit classification.
 
-This is implemented using a **Multi-Task Learning** architecture with two output layers.
+This approach allows the model to learn shared visual features while solving both classification tasks simultaneously.
 
 ---
 
@@ -28,7 +29,7 @@ The project uses the:
 
 **FruitNet: Indian Fruits Dataset with Quality**
 
-The dataset contains fruit images organized by quality and fruit type.
+The dataset contains fruit images organized according to fruit type and quality.
 
 ### Dataset Structure
 
@@ -51,7 +52,14 @@ Processed Images_Fruits/
     └── ...
 ```
 
-The dataset is **not included** in this repository because of its large size.
+### Dataset Statistics
+
+- **Total Images:** 19,526
+- **Image Size:** 128 × 128 × 3
+- **Quality Classes:** 3
+- **Fruit Classes:** 18
+
+The dataset is **not included in this repository** because of its large size.
 
 ---
 
@@ -71,20 +79,20 @@ The dataset is **not included** in this repository because of its large size.
 
 ## Image Preprocessing
 
-Each image is processed using the following steps:
+Each image goes through the following preprocessing pipeline:
 
-1. Convert BGR images to RGB.
+1. Convert images from BGR to RGB.
 2. Resize images to `128 × 128`.
-3. Normalize pixel values to the range `[0, 1]`.
+3. Normalize pixel values to `[0, 1]`.
 4. Encode quality labels using `LabelEncoder`.
 5. Encode fruit labels using `LabelEncoder`.
-6. Convert labels to one-hot encoded vectors.
+6. Convert labels into one-hot encoded vectors.
 
 ---
 
 ## Model Architecture
 
-The project uses a **Multi-Task Convolutional Neural Network (CNN)**.
+The project uses a **Multi-Task Convolutional Neural Network (CNN)** with shared feature extraction and two classification outputs.
 
 ```text
 Input Image
@@ -112,30 +120,40 @@ Dropout (0.5)
        ├──────────────────┐
        ▼                  ▼
 Quality Output       Fruit Output
+3 Classes            18 Classes
 Softmax              Softmax
 ```
 
-### Quality Classification
+### Model Configuration
 
-The first output predicts the **quality category** of the fruit.
-
-### Fruit Classification
-
-The second output predicts the **fruit type**.
+- **Input:** `128 × 128 × 3`
+- **Convolutional Layers:** 3
+- **Dense Layer:** 256 units
+- **Dropout:** 0.5
+- **Quality Output:** 3 classes
+- **Fruit Output:** 18 classes
+- **Total Parameters:** 6,521,429
+- **Trainable Parameters:** 6,521,429
 
 ---
 
 ## Training
 
-The model uses:
+The model was trained using:
 
-- **Optimizer:** Adam
-- **Loss Function:** Categorical Crossentropy
-- **Metric:** Accuracy
-- **Dropout:** 0.5
-- **Early Stopping:** Used to reduce overfitting
+| Configuration | Value |
+|---|---|
+| Optimizer | Adam |
+| Loss Function | Categorical Crossentropy |
+| Metric | Accuracy |
+| Dropout | 0.5 |
+| Batch Size | 32 |
+| Maximum Epochs | 50 |
+| Early Stopping | Enabled |
 
-The model is trained using both outputs simultaneously.
+Early Stopping was applied by monitoring validation loss and restoring the best model weights.
+
+The model was trained using both outputs simultaneously:
 
 ```python
 model.compile(
@@ -153,16 +171,52 @@ model.compile(
 
 ---
 
+## Model Performance
+
+The model achieved strong validation performance on both classification tasks.
+
+| Task | Validation Accuracy |
+|---|---:|
+| Fruit Quality Classification | **98%** |
+| Fruit Classification | **96%** |
+
+### Quality Classification
+
+The quality classification achieved:
+
+- **Accuracy:** 98%
+- **Weighted F1-score:** 0.98
+
+Performance by class:
+
+| Class | Precision | Recall | F1-score |
+|---|---:|---:|---:|
+| Bad Quality | 0.98 | 0.98 | 0.98 |
+| Good Quality | 0.99 | 0.98 | 0.99 |
+| Mixed Quality | 0.86 | 0.93 | 0.90 |
+
+### Fruit Classification
+
+The fruit classification achieved:
+
+- **Accuracy:** 96%
+- **Weighted F1-score:** 0.96
+- **Macro F1-score:** 0.93
+
+The model was evaluated across all **18 fruit classes** using precision, recall, and F1-score.
+
+---
+
 ## Evaluation
 
-The model is evaluated using several metrics and visualization techniques.
+Several evaluation methods were used to analyze model performance.
 
 ### Classification Reports
 
-Separate classification reports are generated for:
+Separate classification reports were generated for:
 
-- Fruit Quality
-- Fruit Type
+- Fruit Quality Classification
+- Fruit Classification
 
 The reports include:
 
@@ -173,35 +227,39 @@ The reports include:
 
 ### Confusion Matrices
 
-Confusion matrices are generated for:
+Confusion matrices were generated for both:
 
 - Quality Classification
 - Fruit Classification
 
+They provide a detailed view of correct predictions and class-level misclassifications.
+
 ### Training Curves
 
-The project visualizes:
+The training history was visualized using:
 
-- Training and validation loss
-- Training and validation accuracy
+- Training vs. validation loss
+- Training vs. validation accuracy
 
-These visualizations help analyze model performance and identify potential overfitting.
+These plots help analyze model convergence and identify potential overfitting.
 
 ---
 
-## Model Prediction
+## Prediction
 
-The trained model can predict both outputs from a single fruit image.
+The trained Multi-Task CNN produces two predictions from a single fruit image:
 
 ```text
-Input Image
-     │
-     ├──► Fruit Type Prediction
-     │
-     └──► Fruit Quality Prediction
+                 Input Image
+                     │
+          ┌──────────┴──────────┐
+          ▼                     ▼
+   Fruit Type Prediction   Quality Prediction
+          │                     │
+       Apple              Good Quality
 ```
 
-### Example
+Example:
 
 ```text
 Actual:
@@ -223,8 +281,9 @@ FruitNet-Indian-Fruits-Classification/
 ├── .gitignore
 │
 └── FruitNet_Multitask_CNN.ipynb
-
 ```
+
+> The dataset and trained model are not included in the repository.
 
 ---
 
@@ -233,7 +292,7 @@ FruitNet-Indian-Fruits-Classification/
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/FruitNet-Indian-Fruits-Classification.git
+git clone https://github.com/mariam2004/FruitNet-Indian-Fruits-Classification.git
 cd FruitNet-Indian-Fruits-Classification
 ```
 
@@ -256,31 +315,39 @@ To reproduce the project:
 3. Add the dataset to your Kaggle environment.
 4. Update the dataset path if necessary.
 5. Run the notebook cells in order.
-6. Train the model.
-7. Evaluate the model.
-8. Generate predictions.
+6. Train the Multi-Task CNN.
+7. Evaluate the model using classification reports and confusion matrices.
+8. Generate fruit type and quality predictions.
 
 ---
 
-## Model File
+## Repository Contents
 
-The trained model is stored in:
+This repository contains:
 
-```text
-models/fruit_quality_model.h5
-```
+- `FruitNet_Multitask_CNN.ipynb` — Complete data preprocessing, model training, evaluation, and prediction pipeline.
+- `requirements.txt` — Required Python dependencies.
+- `README.md` — Project documentation.
+- `.gitignore` — Files and directories excluded from version control.
 
-The model contains the trained **Multi-Task CNN** used for fruit type and fruit quality classification.
+The **dataset and trained model weights are excluded** because of their size.
 
 ---
 
 ## Future Improvements
 
 - Transfer learning using pretrained CNN architectures.
-- Data augmentation.
+- Data augmentation to improve generalization.
 - Hyperparameter tuning.
-- More robust train/validation/test splitting.
-- Model deployment using Streamlit.
-- Web-based fruit classification application.
+- A dedicated train/validation/test split.
+- Model optimization and lightweight deployment.
+- Streamlit-based web application.
+- Real-time fruit image classification.
 
 ---
+
+GitHub:  
+https://github.com/mariam2004
+
+LinkedIn:  
+https://linkedin.com/in/mariam-kedr-mariamahmed/
